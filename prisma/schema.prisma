@@ -1,0 +1,334 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+enum UserType {
+  LIBRARIAN 
+  USER      
+  ADMIN    
+
+}
+
+enum BookCategory {
+  GEOGRAPHY
+  BIOGRAPHY
+  POLITICAL_SCIENCE
+  MEDICAL
+  HISTORY
+  SCIENCE
+  TECHNOLOGY
+  PHILOSOPHY
+  BUSINESS
+  RELIGION
+  OTHER
+}
+
+enum LanguageType {
+  ENGLISH
+  HINDI
+  MARATHI
+  GUJARATI
+  PUNJABI
+  BENGALI
+  TAMIL
+  TELUGU
+  KANNADA
+  MALAYALAM
+}
+
+enum RentalStatus {
+  RENTED 
+  RETURNED
+  OVERDUE
+}
+
+
+enum UserStatus {
+  ACTIVE  @map("active")
+  BLOCKED @map("blocked")
+
+  @@map("userstatus")
+}
+
+enum BookStatus {
+  ACTIVE   @map("active")
+  RENTED @map("rentad")
+  DELETE   @map("delete")
+  @@map("bookstatus")
+}
+ enum MemberStatus{
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+ }
+enum AdminStatus {
+  ACTIVE @map("active")
+
+  @@map("admin_status")
+}
+
+model Admin {
+  id           Int         @id @default(autoincrement())
+  firstname    String
+  lastname     String
+  email        String      @unique
+  profileImage String?     @map("profile_image")
+  status       AdminStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  meta         AdminMeta?
+
+  @@map("admin")
+}
+
+model AdminMeta {
+  passwordSalt String? @map("password_salt")
+  passwordHash String? @map("password_hash")
+  admin        Admin   @relation(fields: [adminId], references: [id])
+  adminId      Int     @unique() @map("admin_id")
+
+  @@map("admin_meta")
+}
+model User {
+  id           Int       @id @default(autoincrement())
+  firstname    String
+  lastname     String
+  username     String?    @unique
+  email        String     @unique
+  dialCode     String?    @map("dial_code")
+  mobile       String?    @unique
+  profileImage String?    @map("profile_image")
+  isVerified   Boolean    @default(false) @map("is_verified")
+  country      String?
+  status       UserStatus  @default(ACTIVE)
+  role         UserType   @default(USER)
+
+  members       Member[] 
+  createdBooks  Book[]
+
+  rentals       Rental[]               
+
+  registry      Registry[]     
+
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+
+  meta      UserMeta?
+  settings  UserSetting[]
+
+  @@map("user")
+}
+
+model Book {
+  id              Int          @id @default(autoincrement())
+  userId          Int          @map("user_id")
+  title           String
+  author          String
+  description     String?
+  language        LanguageType
+  category        BookCategory
+  status          BookStatus   @default(ACTIVE)
+  totalCopies     Int          @default(1)
+  availableCopies Int          @default(1)
+  publishYear     String?
+  pages           Int?
+  edition         String?
+
+  user    User     @relation(fields: [userId], references: [id])
+  rentals Rental[]
+  registry Registry[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([author])
+  @@index([title])
+  @@index([category])
+  @@index([language])
+  @@map("book")
+}
+ 
+model Rental {
+  id              Int          @id @default(autoincrement())
+  status          RentalStatus @default(RENTED)
+
+  memberId        Int
+  member          Member       @relation(fields: [memberId], references: [id])
+
+  bookId          Int          @map("book_id")
+  book            Book         @relation(fields: [bookId], references: [id])
+
+  userId          Int          
+  user            User         @relation(fields: [userId], references: [id])
+
+  rentalDays      Int          @map("rental_days")
+   
+  registry        Registry?
+
+  dueDate         DateTime     @map("due_date")
+  returnedAt      DateTime?    @map("returned_at")
+
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  @@index([memberId])
+  @@index([bookId])
+  @@index([userId])
+  @@index([status])
+
+  @@map("rental")
+}
+
+model Registry {
+  id       Int            @id @default(autoincrement())
+  status   RentalStatus @default(RENTED)
+  memberId   Int 
+  bookId   Int            @map("book_id")
+  book     Book           @relation(fields: [bookId], references: [id])
+
+  userId   Int            @map("user_id")
+  user     User           @relation(fields: [userId], references: [id])
+  member   Member        @relation(fields: [memberId], references: [id])
+  rentalId Int            @unique @map("rental_id")
+  rental   Rental         @relation(fields: [rentalId], references: [id])
+
+  rentedAt   DateTime  @default(now()) @map("rented_at")   
+  returnedAt DateTime? @map("returned_at")                 
+  dueDate    DateTime  @map("due_date")                    
+
+  @@index([bookId])
+  @@index([userId])
+  @@index([status])
+  @@map("registry")
+}
+
+model Member {
+  id           Int          @id @default(autoincrement())
+  userId       Int           @map("user_id")
+  memberId     String       @unique  @default(uuid()) @map("member_id")
+  firstname    String
+  lastname     String
+  email        String     @unique
+  mobile       String     @unique
+  address      String
+  status       MemberStatus @default(ACTIVE)
+
+  user       User  @relation(fields: [userId], references: [id])
+
+  rentals      Rental[]    
+  registry     Registry[]   
+
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([mobile])
+  @@index([memberId])
+  @@map("member")
+}
+
+model UserMeta {
+  googleId     String? @unique @map("google_id")
+  passwordSalt String? @map("password_salt")
+  passwordHash String? @map("password_hash")
+  user         User    @relation(fields: [userId], references: [id])
+  userId       Int     @unique() @map("user_id")
+
+  @@map("user_meta")
+}
+
+enum OtpTransport {
+  Email  @map("email")
+  Mobile @map("mobile")
+
+  @@map("otp_transport")
+}
+
+model Otp {
+  code             String
+  attempt          Int          @default(1) @db.SmallInt
+  lastSentAt       DateTime     @default(now()) @map("last_sent_at")
+  retries          Int          @default(0) @db.SmallInt
+  transport        OtpTransport
+  target           String
+  lastCodeVerified Boolean      @default(false) @map("last_code_verified")
+  blocked          Boolean      @default(false)
+
+  @@unique([transport, target])
+  @@map("otp")
+}
+
+enum SettingType {
+  Binary       @map("binary")
+  MultiSelect  @map("multi_select")
+  SingleSelect @map("single_select")
+
+  @@map("setting_type")
+}
+
+enum SettingContext {
+  User   @map("user")
+  System @map("System")
+
+  @@map("setting_context")
+}
+
+model Setting {
+  id               Int             @id @default(autoincrement())
+  mappedTo         String          @map("mapped_to")
+  text             String          @default("")
+  description      String          @default("")
+  type             SettingType
+  context          SettingContext
+  default          Json
+  isDefinedOptions Boolean         @map("is_defined_options")
+  subSettings      Setting[]       @relation("SubSettings")
+  dependsOn        Setting?        @relation("SubSettings", fields: [parentId], references: [id])
+  parentId         Int?            @map("parent_id")
+  options          SettingOption[]
+  userSettings     UserSetting[]
+  systemSettings   SystemSetting[]
+
+  @@unique([context, mappedTo])
+  @@map("setting")
+}
+
+model SettingOption {
+  id        Int     @id @default(autoincrement())
+  text      String  @default("")
+  value     String
+  setting   Setting @relation(fields: [settingId], references: [id])
+  settingId Int     @map("setting_id")
+
+  @@unique([settingId, value])
+  @@map("setting_option")
+}
+
+model UserSetting {
+  selection Json
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int     @map("user_id")
+  setting   Setting @relation(fields: [settingId], references: [id])
+  settingId Int     @map("setting_id")
+
+  @@id([userId, settingId])
+  @@map("user_setting")
+}
+
+model SystemSetting {
+  selection Json
+  setting   Setting @relation(fields: [settingId], references: [id])
+  settingId Int     @map("setting_id")
+
+  @@id([settingId])
+  @@map("system_setting")
+}
