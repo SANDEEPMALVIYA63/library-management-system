@@ -141,73 +141,40 @@ Swagger API Documentation:
 http://localhost:9001/api
 ```
 
-### Book Module — `/book`
+## 📚 Book Module — `/book`
 
 | Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| POST | `/book` | Add a new book to the library | Librarian |
+| GET | `/book` | Get all books with copy counts | Librarian |
+| GET | `/book/:id` | Get a specific book by ID | Librarian |
+| PATCH | `/book/:id` | Update book details | Librarian |
+| DELETE | `/book/:id` | Delete a book from the library | Librarian |
+| POST | `/book/:id` | Add more physical copies of a book | Librarian |
 
-| `POST` | `/book` | Add a new book to the library | Librarian |
-| `GET` | `/book` | Get all books (with copy counts) | Librarian |
-| `GET` | `/book/:id` | Get a specific book by ID | Librarian |
-| `PATCH` | `/book/:id` | Update book details | Librarian |
-| `DELETE` | `/book/:id` | Delete a book from the library | Librarian|
-| `POST` | `/book/:id` | Add more physical copies of a book | Librarian |
 
-### 👤 Member Module — `/member`
 
-| Method | Endpoint | Description | Access |
-
-| `POST` | `/member` | add a new member | Librarian |
-| `GET` | `/member` | Get all add members | Librarian |
-| `GET` | `/member/:id` | Get a specific member by ID | Librarian |
-| `PATCH` | `/member/:id` | Update member profile | Librarian |
-| `DELETE` | `/member/:id` | Delete a member | Librarian |
-
-### Rental Module — `/rental`
+## 👤 Member Module — `/member`
 
 | Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| POST | `/member` | Add a new member | Librarian |
+| GET | `/member` | Get all members | Librarian |
+| GET | `/member/:id` | Get a specific member by ID | Librarian |
+| PATCH | `/member/:id` | Update member profile | Librarian |
+| DELETE | `/member/:id` | Delete a member | Librarian |
 
-| `POST` | `/rental` | Rent a book to a member | Librarian, |
-| `POST` | `/rental/:id` | Return a rented book by rental ID | MEMBER |
-| `GET` | `/rental/rented-books` | Get all currently rented books | Librarian |
-| `GET` | `/rental/available-books` | Get all books currently available | Librarian, |
+---
 
-| `GET` | `/rental/book/:bookId/renter` | Get who has rented a specific book Librarian |
+## 🔄 Rental Module — `/rental`
 
-# Sample API Responses
-
-
-
-## Add Member
-
-POST `/member`
-
-Request:
-{
-  "firstname": "string",
-  "lastname": "string",
-  "email": "string",
-  "mobile": "string",
-  "address": "string"
-}
-Response:{
-{
-  "message": "memeber add succesfully ",
-  "addMember": {
-    "id": 7,
-    "userId": 1,
-    "memberId": "903e8337-8a81-4b3b-b1ee-edeba58e9af7",
-    "firstname": "sandeep",
-    "lastname": "malviya",
-    "email": "s2@gmail.com",
-    "mobile": "1123456789",
-    "address": "indore",
-    "status": "ACTIVE",
-    "createdAt": "2026-05-23T09:31:22.981Z",
-    "updatedAt": "2026-05-23T09:31:22.981Z"
-  }
-}
-}
-
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| POST | `/rental` | Rent a book to a member | Librarian |
+| POST | `/rental/:id` | Return a rented book by rental ID | Librarian |
+| GET | `/rental/rented-books` | Get all currently rented books | Librarian |
+| GET | `/rental/available-books` | Get all currently available books | Librarian |
+| GET | `/rental/book/:bookId/renter` | Get who rented a specific book | Librarian |
 
 
 
