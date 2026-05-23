@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateRentalDto } from './dto';
 import { AuthenticatedUser } from '@Common';
@@ -26,10 +20,10 @@ export class RentalService {
       where: { id: memberId },
     });
     if (!member) {
-      throw new NotFoundException(`Member is not found id "${memberId}" `);
+      throw new Error(`Member is not found id "${memberId}" `);
     }
     if (member.status !== MemberStatus.ACTIVE) {
-      throw new BadRequestException(
+      throw new Error(
         `Member "${member.id}" is not active and cannot rent books.`,
       );
     }
@@ -39,22 +33,20 @@ export class RentalService {
     });
 
     if (!book) {
-      throw new NotFoundException(`Book with id "${bookId}" not found.`);
+      throw new Error(`Book with id "${bookId}" not found.`);
     }
 
     if (book.status !== BookStatus.ACTIVE) {
-      throw new BadRequestException(
-        `Book "${book.id}" is not active and cannot be rented.`,
-      );
+      throw new Error(`Book "${book.id}" is not active and cannot be rented.`);
     }
 
     if (book.availableCopies <= 0) {
-      throw new ConflictException(
+      throw new Error(
         `Book "${book.title}" has no available copies at this time.`,
       );
     }
     if (!Number.isInteger(rentalDays) || rentalDays <= 0) {
-      throw new BadRequestException('rentalDays must be a positive integer.');
+      throw new Error('rentalDays must be a positive integer.');
     }
 
     try {
@@ -71,7 +63,7 @@ export class RentalService {
         });
 
         if (updatedBook.count === 0) {
-          throw new ConflictException(
+          throw new Error(
             `Book "${book.title}" has no available copies at this time.`,
           );
         }
@@ -113,7 +105,7 @@ export class RentalService {
         rental,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
+      throw new Error(
         `1An unexpected error occurred while creating the rental ${error}`,
       );
     }
@@ -128,20 +120,18 @@ export class RentalService {
     });
 
     if (!rental) {
-      throw new NotFoundException(`Rental with id "${rentalId}" not found.`);
+      throw new Error(`Rental with id "${rentalId}" not found.`);
     }
 
     if (rental.status === RentalStatus.RETURNED) {
-      throw new ConflictException(
-        `Rental "${rentalId}" has already been returned.`,
-      );
+      throw new Error(`Rental "${rentalId}" has already been returned.`);
     }
 
     if (
       rental.status !== RentalStatus.RENTED &&
       rental.status !== RentalStatus.OVERDUE
     ) {
-      throw new BadRequestException(
+      throw new Error(
         `Rental "${rentalId}" is in an invalid state for return: ${rental.status}.`,
       );
     }
@@ -179,6 +169,7 @@ export class RentalService {
         await tx.book.update({
           where: { id: rental.bookId },
           data: {
+            status: BookStatus.ACTIVE,
             availableCopies: { increment: 1 },
           },
         });
@@ -188,7 +179,7 @@ export class RentalService {
 
       return updatedRental;
     } catch (error) {
-      throw new InternalServerErrorException(
+      throw new Error(
         `An unexpected error occurred while returning the rental. ${error}`,
       );
     }
@@ -279,9 +270,7 @@ export class RentalService {
     });
 
     if (!rentals.length) {
-      throw new NotFoundException(
-        `No active rental found for book id ${bookId}`,
-      );
+      throw new Error(`No active rental found for book id ${bookId}`);
     }
 
     return {
@@ -302,7 +291,9 @@ export class RentalService {
         createdAt: 'desc',
       },
     });
-
+    if (!books) {
+      throw new Error('book is not found');
+    }
     return {
       message: 'Available books fetched successfully',
       data: books,

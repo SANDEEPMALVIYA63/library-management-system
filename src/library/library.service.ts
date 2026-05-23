@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthenticatedUser } from '@Common';
 import { PrismaService } from 'src/prisma';
 import { AddBookDto, AddMoreCopies, UpdateBookDto } from './dto';
@@ -31,7 +26,7 @@ export class LibraryService {
         //     `Book with ISBN "${dto.isbn}" already exists`,
         //   );
         // }
-        throw new ConflictException('Book already Add');
+        throw new Error('Book already Add');
       }
 
       return await tx.book.create({
@@ -77,11 +72,11 @@ export class LibraryService {
       where: { id: bookId },
     });
     if (!existingBook) {
-      throw new NotFoundException(`Book ${bookId}  not found `);
+      throw new Error(`Book ${bookId}  not found `);
     }
 
     if (existingBook.status === BookStatus.RENTED) {
-      throw new BadRequestException('RENTED book Does not update');
+      throw new Error('RENTED book Does not update');
     }
     const newAvailableCopies = existingBook.availableCopies;
 
