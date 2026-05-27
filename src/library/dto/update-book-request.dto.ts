@@ -8,7 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { LanguageType, BookCategory } from 'src/generated/prisma/enums';
+import { BOOKCATEGORY, LANGUAGETYPE } from 'src/generated/prisma/enums';
 
 export class UpdateBookDto {
   @ApiProperty({ required: false })
@@ -30,17 +30,17 @@ export class UpdateBookDto {
 
   @ApiProperty({})
   @IsOptional()
-  @IsEnum(LanguageType)
-  language?: LanguageType;
+  @IsEnum(LANGUAGETYPE)
+  language?: LANGUAGETYPE;
 
   @ApiProperty({
-    enum: BookCategory,
+    enum: BOOKCATEGORY,
     required: false,
-    example: BookCategory.BIOGRAPHY,
+    example: BOOKCATEGORY.BIOGRAPHY,
   })
   @IsOptional()
-  @IsEnum(BookCategory)
-  category?: BookCategory;
+  @IsEnum(BOOKCATEGORY)
+  category?: BOOKCATEGORY;
 
   @ApiProperty({ required: false })
   @IsOptional()

@@ -11,14 +11,13 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-enum UserType {
+enum USERTYPE {
   LIBRARIAN 
   USER      
   ADMIN    
-
 }
 
-enum BookCategory {
+enum BOOKCATEGORY {
   GEOGRAPHY
   BIOGRAPHY
   POLITICAL_SCIENCE
@@ -32,7 +31,7 @@ enum BookCategory {
   OTHER
 }
 
-enum LanguageType {
+enum LANGUAGETYPE {
   ENGLISH
   HINDI
   MARATHI
@@ -45,36 +44,36 @@ enum LanguageType {
   MALAYALAM
 }
 
-enum RentalStatus {
+enum RENTALSTATUS {
   RENTED 
   RETURNED
   OVERDUE
 }
 
-
-enum UserStatus {
+enum USERSTATUS {
   ACTIVE  @map("active")
   BLOCKED @map("blocked")
 
   @@map("userstatus")
 }
 
-enum BookStatus {
+enum BOOKSTATUS {
   ACTIVE   @map("active")
   RENTED @map("rentad")
   DELETE   @map("delete")
   @@map("bookstatus")
 }
- enum MemberStatus{
+ enum MEBMERSTATUS{
   ACTIVE
   INACTIVE
   SUSPENDED
  }
-enum AdminStatus {
-  ACTIVE @map("active")
 
+enum ADMINSTATUS {
+  ACTIVE @map("active")
   @@map("admin_status")
 }
+
 
 model Admin {
   id           Int         @id @default(autoincrement())
@@ -82,7 +81,7 @@ model Admin {
   lastname     String
   email        String      @unique
   profileImage String?     @map("profile_image")
-  status       AdminStatus @default(ACTIVE)
+  status       ADMINSTATUS  @default(ACTIVE)
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   meta         AdminMeta?
@@ -109,16 +108,14 @@ model User {
   profileImage String?    @map("profile_image")
   isVerified   Boolean    @default(false) @map("is_verified")
   country      String?
-  status       UserStatus  @default(ACTIVE)
-  role         UserType   @default(USER)
+  status       USERSTATUS  @default(ACTIVE)
+  role         USERTYPE   @default(USER)
 
   members       Member[] 
   createdBooks  Book[]
 
   rentals       Rental[]               
-
-  registry      Registry[]     
-
+    
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
 
@@ -135,9 +132,9 @@ model Book {
   title           String
   author          String
   description     String?
-  language        LanguageType
-  category        BookCategory
-  status          BookStatus   @default(ACTIVE)
+  language        LANGUAGETYPE
+  category        BOOKCATEGORY
+  status          BOOKSTATUS   @default(ACTIVE)
   totalCopies     Int          @default(1)
   availableCopies Int          @default(1)
   publishYear     String?
@@ -146,7 +143,6 @@ model Book {
 
   user    User     @relation(fields: [userId], references: [id])
   rentals Rental[]
-  registry Registry[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -159,7 +155,7 @@ model Book {
  
 model Rental {
   id              Int          @id @default(autoincrement())
-  status          RentalStatus @default(RENTED)
+  status          RENTALSTATUS @default(RENTED)
 
   memberId        Int
   member          Member       @relation(fields: [memberId], references: [id])
@@ -172,8 +168,6 @@ model Rental {
 
   rentalDays      Int          @map("rental_days")
    
-  registry        Registry?
-
   dueDate         DateTime     @map("due_date")
   returnedAt      DateTime?    @map("returned_at")
 
@@ -188,28 +182,6 @@ model Rental {
   @@map("rental")
 }
 
-model Registry {
-  id       Int            @id @default(autoincrement())
-  status   RentalStatus @default(RENTED)
-  memberId   Int 
-  bookId   Int            @map("book_id")
-  book     Book           @relation(fields: [bookId], references: [id])
-
-  userId   Int            @map("user_id")
-  user     User           @relation(fields: [userId], references: [id])
-  member   Member        @relation(fields: [memberId], references: [id])
-  rentalId Int            @unique @map("rental_id")
-  rental   Rental         @relation(fields: [rentalId], references: [id])
-
-  rentedAt   DateTime  @default(now()) @map("rented_at")   
-  returnedAt DateTime? @map("returned_at")                 
-  dueDate    DateTime  @map("due_date")                    
-
-  @@index([bookId])
-  @@index([userId])
-  @@index([status])
-  @@map("registry")
-}
 
 model Member {
   id           Int          @id @default(autoincrement())
@@ -220,12 +192,11 @@ model Member {
   email        String     @unique
   mobile       String     @unique
   address      String
-  status       MemberStatus @default(ACTIVE)
+  status       MEBMERSTATUS @default(ACTIVE)
 
   user       User  @relation(fields: [userId], references: [id])
 
-  rentals      Rental[]    
-  registry     Registry[]   
+  rentals      Rental[]      
 
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")

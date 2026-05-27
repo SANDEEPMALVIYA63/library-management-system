@@ -13,7 +13,7 @@ import {
 } from '@Common';
 import { PrismaService } from '../prisma';
 import { Admin, AdminMeta, Prisma, User } from '../generated/prisma/client';
-import { AdminStatus } from '../generated/prisma/enums';
+import { ADMINSTATUS } from '../generated/prisma/enums';
 
 @Injectable()
 export class AdminService {
@@ -96,7 +96,7 @@ export class AdminService {
   ): Promise<ValidatedUser | false | null> {
     const admin = await this.getByEmail(email);
     if (!admin) return null;
-    if (admin.status !== AdminStatus.ACTIVE) {
+    if (admin.status !== ADMINSTATUS.ACTIVE) {
       throw new Error(
         'Your account has been temporarily suspended/blocked by the system',
       );
@@ -223,7 +223,7 @@ export class AdminService {
     return admin;
   }
 
-  async setStatus(userId: number, status: AdminStatus): Promise<Admin> {
+  async setStatus(userId: number, status: ADMINSTATUS): Promise<Admin> {
     await this.cacheManager.del(
       getAccessGuardCacheKey({ id: userId, type: UserType.ADMIN }),
     );

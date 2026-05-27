@@ -23,7 +23,7 @@ import {
   Prisma,
   User,
   UserMeta,
-  UserStatus,
+  USERSTATUS,
 } from '../generated/prisma/client';
 
 @Injectable()
@@ -152,7 +152,7 @@ export class UsersService {
   ): Promise<ValidatedUser | false | null> {
     const user = await this.getByEmail(email);
     if (!user) return null;
-    if (user.status !== UserStatus.ACTIVE) {
+    if (user.status !== USERSTATUS.ACTIVE) {
       throw new Error(
         'Your account has been temporarily suspended/blocked by the system. Please contact customer support for assistance',
       );
@@ -507,7 +507,7 @@ export class UsersService {
     return user;
   }
 
-  async setStatus(userId: number, status: UserStatus): Promise<User> {
+  async setStatus(userId: number, status: USERSTATUS): Promise<User> {
     await this.cacheManager.del(
       getAccessGuardCacheKey({ id: userId, type: UserType.USER }),
     );

@@ -9,7 +9,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { AuthenticatedUser, UserType } from '../types';
 import { PrismaService } from '../../prisma';
-import { AdminStatus, UserStatus } from '../../generated/prisma/client';
+import { ADMINSTATUS, USERSTATUS } from '../../generated/prisma/client';
 
 export const getAccessGuardCacheKey = (user: { id: number; type: string }) =>
   `${user.type}-${user.id}-access`.toLowerCase();
@@ -38,7 +38,7 @@ export class AccessGuard implements CanActivate {
       const userInfo = await this.prisma.user.findUnique({
         where: { id: user.id },
       });
-      if (userInfo?.status !== UserStatus.ACTIVE) {
+      if (userInfo?.status !== USERSTATUS.ACTIVE) {
         await this.cacheManager.set(cacheKey, false, cacheTtl);
         throw new UnauthorizedException();
       }
@@ -46,7 +46,7 @@ export class AccessGuard implements CanActivate {
       const userInfo = await this.prisma.admin.findUnique({
         where: { id: user.id },
       });
-      if (userInfo?.status !== AdminStatus.ACTIVE) {
+      if (userInfo?.status !== ADMINSTATUS.ACTIVE) {
         await this.cacheManager.set(cacheKey, false, cacheTtl);
         throw new UnauthorizedException();
       }

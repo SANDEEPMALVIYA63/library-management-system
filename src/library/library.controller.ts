@@ -8,12 +8,18 @@ import {
   ParseIntPipe,
   Get,
   Delete,
+  Query,
   Patch,
 } from '@nestjs/common';
 import { LibraryService } from './library.service';
 
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { AddBookDto, AddMoreCopies, UpdateBookDto } from './dto';
+import {
+  AddBookDto,
+  AddMoreCopies,
+  UpdateBookDto,
+  FindAllBookQueryDto,
+} from './dto';
 import {
   JwtAuthGuard,
   AccessGuard,
@@ -60,10 +66,8 @@ export class LibraryController extends BaseController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all books ' })
-  @Roles(UserType.ADMIN, UserType.LIBRARIAN, UserType.USER)
-  async findAllBokk() {
-    return this.libraryService.findAllBook();
+  findAllBook(@Query() query: FindAllBookQueryDto) {
+    return this.libraryService.findAllBook(query);
   }
 
   @Delete(':id')

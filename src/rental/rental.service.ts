@@ -4,9 +4,9 @@ import { CreateRentalDto } from './dto';
 import { AuthenticatedUser } from '@Common';
 import { calculateDueDate } from './helpers';
 import {
-  BookStatus,
-  MemberStatus,
-  RentalStatus,
+  BOOKSTATUS,
+  MEBMERSTATUS,
+  RENTALSTATUS,
 } from 'src/generated/prisma/enums';
 
 @Injectable()
@@ -22,9 +22,9 @@ export class RentalService {
     if (!member) {
       throw new Error(`Member is not found id "${memberId}" `);
     }
-    if (member.status !== MemberStatus.ACTIVE) {
+    if (member.status !== MEBMERSTATUS.ACTIVE) {
       throw new Error(
-        `Member "${member.id}" is not active and cannot rent books.`,
+        `Member  ID "${member.id}" is not active and cannot rent books.`,
       );
     }
 
@@ -36,7 +36,7 @@ export class RentalService {
       throw new Error(`Book with id "${bookId}" not found.`);
     }
 
-    if (book.status !== BookStatus.ACTIVE) {
+    if (book.status !== BOOKSTATUS.ACTIVE) {
       throw new Error(`Book "${book.id}" is not active and cannot be rented.`);
     }
 
@@ -57,7 +57,7 @@ export class RentalService {
             availableCopies: { gt: 0 },
           },
           data: {
-            status: BookStatus.RENTED,
+            status: BOOKSTATUS.RENTED,
             availableCopies: { decrement: 1 },
           },
         });
@@ -74,7 +74,7 @@ export class RentalService {
             bookId,
             userId: UserId.id,
             rentalDays,
-            status: RentalStatus.RENTED,
+            status: RENTALSTATUS.RENTED,
             dueDate: calculateDueDate(rentalDays),
           },
           include: {
@@ -101,7 +101,7 @@ export class RentalService {
       });
 
       return {
-        message: 'book give a rent ',
+        message: 'Book successfully rented out.',
         rental,
       };
     } catch (error) {
@@ -123,13 +123,13 @@ export class RentalService {
       throw new Error(`Rental with id "${rentalId}" not found.`);
     }
 
-    if (rental.status === RentalStatus.RETURNED) {
+    if (rental.status === RENTALSTATUS.RETURNED) {
       throw new Error(`Rental "${rentalId}" has already been returned.`);
     }
 
     if (
-      rental.status !== RentalStatus.RENTED &&
-      rental.status !== RentalStatus.OVERDUE
+      rental.status !== RENTALSTATUS.RENTED &&
+      rental.status !== RENTALSTATUS.OVERDUE
     ) {
       throw new Error(
         `Rental "${rentalId}" is in an invalid state for return: ${rental.status}.`,
@@ -141,7 +141,7 @@ export class RentalService {
         const returned = await tx.rental.update({
           where: { id: rentalId },
           data: {
-            status: RentalStatus.RETURNED,
+            status: RENTALSTATUS.RETURNED,
             userId: userId.id,
             returnedAt: new Date(),
           },
@@ -169,7 +169,7 @@ export class RentalService {
         await tx.book.update({
           where: { id: rental.bookId },
           data: {
-            status: BookStatus.ACTIVE,
+            status: BOOKSTATUS.ACTIVE,
             availableCopies: { increment: 1 },
           },
         });
@@ -188,7 +188,7 @@ export class RentalService {
   async getRentedBooks() {
     const rentals = await this.prisma.rental.findMany({
       where: {
-        status: RentalStatus.RENTED,
+        status: RENTALSTATUS.RENTED,
       },
       orderBy: {
         createdAt: 'asc',
@@ -238,13 +238,13 @@ export class RentalService {
     const rentals = await this.prisma.rental.findMany({
       where: {
         bookId,
-        status: RentalStatus.RENTED,
+        status: RENTALSTATUS.RENTED,
       },
       orderBy: {
         createdAt: 'desc',
       },
       include: {
-        member: {
+        user: {
           select: {
             id: true,
             firstname: true,
@@ -282,7 +282,7 @@ export class RentalService {
   async getAvailableBooks() {
     const books = await this.prisma.book.findMany({
       where: {
-        status: BookStatus.ACTIVE,
+        status: BOOKSTATUS.ACTIVE,
         availableCopies: {
           gt: 0,
         },

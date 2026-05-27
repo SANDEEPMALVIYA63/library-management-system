@@ -44,11 +44,11 @@ export class RegisterUserRequestDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  country: string;
+  country!: string;
 
   @ApiProperty()
   @IsString()
-  emailVerificationCode: string;
+  emailVerificationCode!: string;
 
   @ApiPropertyOptional()
   @IsOptional()

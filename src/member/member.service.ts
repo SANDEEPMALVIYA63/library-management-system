@@ -9,7 +9,7 @@ export class MemberService {
 
   async addMember(ctx: AuthenticatedUser, dto: AddMemberDto) {
     if (ctx.type !== UserType.USER) {
-      throw new Error('only LIBRARIAN can add member');
+      throw new Error('only librarain can add member');
     }
 
     const member = await this.prisma.member.findUnique({
@@ -73,11 +73,11 @@ export class MemberService {
     });
 
     if (!allMember) {
-      throw new Error('not avalible mamber ');
+      throw new Error('member is not avalible  ');
     }
 
     return {
-      message: ' find all member',
+      message: ' feacth all member',
       allMember,
     };
   }
@@ -127,7 +127,6 @@ export class MemberService {
 
     return {
       message: 'member delete successFully',
-      deleteMember,
     };
   }
 
@@ -162,7 +161,7 @@ export class MemberService {
     }
 
     return {
-      message: 'member update successfully ',
+      message: 'Member update successfully ',
       update,
     };
   }

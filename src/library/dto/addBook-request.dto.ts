@@ -9,7 +9,7 @@ import {
   Length,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { LanguageType, BookCategory } from 'src/generated/prisma/enums';
+import { LANGUAGETYPE, BOOKCATEGORY } from 'src/generated/prisma/enums';
 
 export class AddBookDto {
   @ApiProperty()
@@ -30,15 +30,15 @@ export class AddBookDto {
   @Length(3, 300)
   description?: string;
 
-  @ApiProperty({ enum: LanguageType })
+  @ApiProperty({ enum: LANGUAGETYPE })
   @IsNotEmpty()
-  @IsEnum(LanguageType)
-  language!: LanguageType;
+  @IsEnum(LANGUAGETYPE)
+  language!: LANGUAGETYPE;
 
-  @ApiProperty({ enum: BookCategory })
+  @ApiProperty({ enum: BOOKCATEGORY })
   @IsNotEmpty()
-  @IsEnum(BookCategory)
-  category!: BookCategory;
+  @IsEnum(BOOKCATEGORY)
+  category!: BOOKCATEGORY;
 
   @ApiProperty()
   @Type(() => Number)

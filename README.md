@@ -164,7 +164,7 @@ http://localhost:9001/api
 | PATCH | `/member/:id` | Update member profile | Librarian |
 | DELETE | `/member/:id` | Delete a member | Librarian |
 
----
+---   
 
 ## 🔄 Rental Module — `/rental`
 
@@ -175,11 +175,6 @@ http://localhost:9001/api
 | GET | `/rental/rented-books` | Get all currently rented books | Librarian |
 | GET | `/rental/available-books` | Get all currently available books | Librarian |
 | GET | `/rental/book/:bookId/renter` | Get who rented a specific book | Librarian |
-
-
-
-
-
 
 
 

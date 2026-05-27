@@ -30,7 +30,7 @@ import {
   UpdateProfileImageRequestDto,
   UpdateUserProfileRequestDto,
 } from './dto';
-import { UserStatus } from '../generated/prisma/client';
+import { USERSTATUS } from '../generated/prisma/client';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -129,13 +129,13 @@ export class UsersController extends BaseController {
     return { status: 'success' };
   }
 
-  @ApiParam({ name: 'status', enum: UserStatus })
+  @ApiParam({ name: 'status', enum: USERSTATUS })
   @Roles(UserType.ADMIN)
   @UseGuards(RolesGuard)
   @Post(':userId/:status')
   async setUserStatus(
     @Param('userId', ParseIntPipe) userId: number,
-    @Param('status', new ParseEnumPipe(UserStatus)) status: UserStatus,
+    @Param('status', new ParseEnumPipe(USERSTATUS)) status: USERSTATUS,
   ) {
     await this.usersService.setStatus(userId, status);
     return { status: 'success' };

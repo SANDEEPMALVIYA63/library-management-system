@@ -1,32 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { AuthenticatedUser } from '@Common';
 import { PrismaService } from 'src/prisma';
-import { AddBookDto, AddMoreCopies, UpdateBookDto } from './dto';
 import {
-  assertAdminOrLibrarian,
-  findBookConflict,
-  // cleanNumber,
-  // cleanString,
-} from './helpers';
-import { BookStatus } from 'src/generated/prisma/enums';
+  AddBookDto,
+  AddMoreCopies,
+  UpdateBookDto,
+  FindAllBookQueryDto,
+} from './dto';
+import { assertAdminOrLibrarian, findBookConflict } from './helpers';
+import { BOOKSTATUS } from 'src/generated/prisma/enums';
 @Injectable()
 export class LibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async addBookInLibrary(ctx: AuthenticatedUser, dto: AddBookDto) {
-    // console.log('ctx', ctx.);
-
     assertAdminOrLibrarian(ctx);
 
     const book = await this.prisma.$transaction(async (tx) => {
       const existingBook = await findBookConflict(tx, dto);
       if (existingBook) {
-        // if (existingBook.isbn === dto.isbn) {
-        //   throw new ConflictException(
-        //     `Book with ISBN "${dto.isbn}" already exists`,
-        //   );
-        // }
-        throw new Error('Book already Add');
+        throw new Error('Book already exists');
       }
 
       return await tx.book.create({
@@ -57,7 +50,7 @@ export class LibraryService {
     });
 
     return {
-      message: `book create successFully `,
+      message: 'Book created successfully',
       book,
     };
   }
@@ -72,11 +65,11 @@ export class LibraryService {
       where: { id: bookId },
     });
     if (!existingBook) {
-      throw new Error(`Book ${bookId}  not found `);
+      throw new Error(`Book  with ID ${bookId}  not found `);
     }
 
-    if (existingBook.status === BookStatus.RENTED) {
-      throw new Error('RENTED book Does not update');
+    if (existingBook.status === BOOKSTATUS.RENTED) {
+      throw new Error('Rented books can not updated');
     }
     const newAvailableCopies = existingBook.availableCopies;
 
@@ -124,50 +117,60 @@ export class LibraryService {
         publishYear: true,
         pages: true,
         edition: true,
-        createdAt: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
-        },
       },
     });
 
     if (!book) {
-      throw Error('book not found ');
+      throw Error('book  not found ');
     }
 
     return {
-      message: 'book find successFully ',
+      message: 'book featch successFully ',
       book,
     };
   }
 
-  async findAllBook() {
-    const books = await this.prisma.book.findMany({
-      orderBy: {
-        createdAt: 'asc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
+  async findAllBook(query: FindAllBookQueryDto) {
+    const { page = 1, limit = 10, search } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' as const } },
+            { author: { contains: search, mode: 'insensitive' as const } },
+            { description: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [books, total] = await this.prisma.$transaction([
+      this.prisma.book.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'asc',
         },
-      },
-    });
-    if (!books) {
-      throw new Error('something went wrong when found a all book ');
+      }),
+      this.prisma.book.count({ where }),
+    ]);
+
+    if (books.length === 0) {
+      throw new Error('No books found');
     }
 
-    return books;
+    return {
+      message: 'Books fetched successfully',
+      data: books,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async deleteBook(bookId: number) {
@@ -187,17 +190,22 @@ export class LibraryService {
     });
 
     return {
-      message: ` book delete successfully`,
+      message: ' book delete successfully ',
     };
   }
 
   async addMoreCopies(bookId: number, dto: AddMoreCopies) {
-    return await this.prisma.book.update({
+    const addBook = await this.prisma.book.update({
       where: { id: bookId },
       data: {
         totalCopies: { increment: dto.additionalCopies },
         availableCopies: { increment: dto.additionalCopies },
       },
     });
+
+    return {
+      message: 'book coopis add successfully',
+      addBook,
+    };
   }
 }

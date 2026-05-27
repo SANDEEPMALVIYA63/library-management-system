@@ -35,7 +35,7 @@ export class RentalController extends BaseController {
   }
 
   @Post()
-  @ApiOperation({ summary: ' rent a book member' })
+  @ApiOperation({ summary: ' rent a book ' })
   async rentBook(
     @Req() req: AuthenticatedRequest,
     @Body() dto: CreateRentalDto,
